@@ -6,9 +6,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: process.env.REPLIT_DOMAINS
-    ? process.env.REPLIT_DOMAINS.split(",")
-    : undefined,
+  allowedDevOrigins: [
+    "127.0.0.1",
+    "localhost",
+    ...(process.env.REPLIT_DOMAINS?.split(",") ?? []),
+  ],
 }
 
 export default nextConfig
