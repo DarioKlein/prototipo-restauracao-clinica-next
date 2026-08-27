@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, type FormEvent } from "react"
-import { Layers, Check, X } from "lucide-react"
+import { Check } from "lucide-react"
 import { Field, TextInput, TextArea } from "@/components/ui/form-controls"
 import {
   MODALIDADE_CORES,
@@ -13,7 +13,6 @@ import {
 export type ModalidadeFormValues = Omit<ModalidadeItem, "id" | "criadoEm">
 
 interface ModalidadeFormProps {
-  open: boolean
   /** Modalidade sendo editada; ausente ao criar. */
   modalidade?: ModalidadeItem | null
   /** Vagas já ocupadas — impede reduzir a capacidade abaixo desse valor. */
@@ -24,28 +23,34 @@ interface ModalidadeFormProps {
 
 const EMPTY: ModalidadeFormValues = { nome: "", descricao: "", vagas: 10, cor: "sky", ativa: true }
 
-export function ModalidadeForm({ open, modalidade, ocupadas = 0, onSubmit, onCancel }: ModalidadeFormProps) {
-  const [values, setValues] = useState<ModalidadeFormValues>(EMPTY)
+export function ModalidadeForm({ modalidade, ocupadas = 0, onSubmit, onCancel }: ModalidadeFormProps) {
+  const [values, setValues] = useState<ModalidadeFormValues>(() =>
+    modalidade
+      ? {
+          nome: modalidade.nome,
+          descricao: modalidade.descricao,
+          vagas: modalidade.vagas,
+          cor: modalidade.cor,
+          ativa: modalidade.ativa,
+        }
+      : EMPTY,
+  )
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (open) {
-      setValues(
-        modalidade
-          ? {
-              nome: modalidade.nome,
-              descricao: modalidade.descricao,
-              vagas: modalidade.vagas,
-              cor: modalidade.cor,
-              ativa: modalidade.ativa,
-            }
-          : EMPTY,
-      )
-      setError(null)
-    }
-  }, [open, modalidade])
-
-  if (!open) return null
+    setValues(
+      modalidade
+        ? {
+            nome: modalidade.nome,
+            descricao: modalidade.descricao,
+            vagas: modalidade.vagas,
+            cor: modalidade.cor,
+            ativa: modalidade.ativa,
+          }
+        : EMPTY,
+    )
+    setError(null)
+  }, [modalidade])
 
   const set = <K extends keyof ModalidadeFormValues>(key: K, value: ModalidadeFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: value }))
@@ -68,38 +73,7 @@ export function ModalidadeForm({ open, modalidade, ocupadas = 0, onSubmit, onCan
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-foreground/40" onClick={onCancel} aria-hidden="true" />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalidade-form-title"
-        className="relative w-full max-w-md overflow-hidden rounded-xl border border-border bg-card shadow-lg"
-      >
-        {/* Cabeçalho */}
-        <div className="flex items-center gap-3 border-b border-border bg-primary/5 px-5 py-4">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Layers className="h-5 w-5" aria-hidden="true" />
-          </span>
-          <div>
-            <h2 id="modalidade-form-title" className="text-sm font-semibold text-foreground">
-              {modalidade ? "Editar modalidade" : "Nova modalidade"}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {modalidade ? "Atualize os dados e a capacidade de vagas." : "Defina o nome e a quantidade de vagas."}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Fechar"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
+    <form onSubmit={handleSubmit} className="space-y-5">
           <Field label="Nome da modalidade" htmlFor="mod-nome" required>
             <TextInput
               id="mod-nome"
@@ -167,24 +141,22 @@ export function ModalidadeForm({ open, modalidade, ocupadas = 0, onSubmit, onCan
             </p>
           )}
 
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
-            >
-              <Check className="h-4 w-4" aria-hidden="true" />
-              {modalidade ? "Salvar alterações" : "Criar modalidade"}
-            </button>
-          </div>
-        </form>
+      <div className="flex justify-end gap-2 border-t border-border pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+        >
+          <Check className="h-4 w-4" aria-hidden="true" />
+          {modalidade ? "Salvar alterações" : "Criar modalidade"}
+        </button>
       </div>
-    </div>
+    </form>
   )
 }

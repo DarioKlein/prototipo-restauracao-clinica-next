@@ -1,23 +1,23 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Layers, Plus, DoorOpen, Users, LayoutGrid } from "lucide-react"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { ConfirmDialog } from "@/components/triagens/confirm-dialog"
 import { ModalidadeCard } from "@/components/modalidades/modalidade-card"
 import { GuiaDrawer } from "@/components/ui/guia-drawer"
 import { GUIA_MODALIDADES } from "@/lib/guias"
-import { ModalidadeForm, type ModalidadeFormValues } from "@/components/modalidades/modalidade-form"
 import { useModalidades } from "@/components/modalidades/modalidades-provider"
 import { useAcolhidos } from "@/components/acolhidos/acolhidos-provider"
 import type { ModalidadeItem } from "@/lib/modalidades"
 
 export default function ModalidadesPage() {
-  const { modalidades, addModalidade, updateModalidade, toggleAtiva, removeModalidade } = useModalidades()
+  const router = useRouter()
+  const { modalidades, toggleAtiva, removeModalidade } = useModalidades()
   const { acolhidos } = useAcolhidos()
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState<ModalidadeItem | null>(null)
   const [toDelete, setToDelete] = useState<ModalidadeItem | null>(null)
 
   /** Conta acolhidos ativos por nome de modalidade. */
@@ -49,24 +49,8 @@ export default function ModalidadesPage() {
     [modalidades],
   )
 
-  function handleNova() {
-    setEditing(null)
-    setFormOpen(true)
-  }
-
   function handleEditar(m: ModalidadeItem) {
-    setEditing(m)
-    setFormOpen(true)
-  }
-
-  function handleSubmit(values: ModalidadeFormValues) {
-    if (editing) {
-      updateModalidade(editing.id, values)
-    } else {
-      addModalidade(values)
-    }
-    setFormOpen(false)
-    setEditing(null)
+    router.push(`/dashboard/modalidades/${m.id}?edit=1`)
   }
 
   return (
@@ -86,15 +70,14 @@ export default function ModalidadesPage() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-          <GuiaDrawer guia={GUIA_MODALIDADES} />
-          <button
-            type="button"
-            onClick={handleNova}
-            className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Nova modalidade
-          </button>
+            <GuiaDrawer guia={GUIA_MODALIDADES} />
+            <Link
+              href="/dashboard/modalidades/nova"
+              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Nova modalidade
+            </Link>
           </div>
         </div>
 
@@ -161,29 +144,16 @@ export default function ModalidadesPage() {
               <p className="text-sm font-semibold text-foreground">Nenhuma modalidade cadastrada</p>
               <p className="text-sm text-muted-foreground">Crie a primeira modalidade de entrada e defina suas vagas.</p>
             </div>
-            <button
-              type="button"
-              onClick={handleNova}
+            <Link
+              href="/dashboard/modalidades/nova"
               className="mt-1 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
               Nova modalidade
-            </button>
+            </Link>
           </div>
         )}
       </div>
-
-      {/* Formulário (criar / editar) */}
-      <ModalidadeForm
-        open={formOpen}
-        modalidade={editing}
-        ocupadas={editing ? getOcupadas(editing) : 0}
-        onSubmit={handleSubmit}
-        onCancel={() => {
-          setFormOpen(false)
-          setEditing(null)
-        }}
-      />
 
       {/* Confirmação de exclusão */}
       <ConfirmDialog
