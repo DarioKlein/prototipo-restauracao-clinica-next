@@ -2,16 +2,15 @@ import { formatCPF, formatPhone, getInitials, avatarTint, parseISODate } from "@
 
 export { formatCPF, formatPhone, getInitials, avatarTint }
 
-export type Cargo =
-  | "Administrador"
-  | "Coordenador"
-  | "Enfermeiro(a)"
-  | "Assistente Social"
-  | "Nutricionista"
-  | "Psicólogo(a)"
-  | "Monitor"
+export type Cargo = string
 
-export const CARGOS: Cargo[] = [
+export interface CargoItem {
+  id: string
+  nome: string
+  ativo: boolean
+}
+
+export const CARGOS: string[] = [
   "Administrador",
   "Coordenador",
   "Enfermeiro(a)",
@@ -20,6 +19,14 @@ export const CARGOS: Cargo[] = [
   "Psicólogo(a)",
   "Monitor",
 ]
+
+export function createSeedCargos(): CargoItem[] {
+  return CARGOS.map((nome, index) => ({
+    id: `cargo-${index + 1}`,
+    nome,
+    ativo: true,
+  }))
+}
 
 export type FuncionarioStatus = "ativo" | "inativo"
 
@@ -50,7 +57,7 @@ export const STATUS_CONFIG: Record<
 }
 
 /** Cor de destaque por cargo, para o selo de cargo no card. */
-export const CARGO_CONFIG: Record<Cargo, { badge: string }> = {
+export const CARGO_CONFIG: Record<string, { badge: string }> = {
   Administrador: { badge: "border-primary/20 bg-primary/10 text-primary" },
   Coordenador: { badge: "border-sky-200 bg-sky-50 text-sky-700" },
   "Enfermeiro(a)": { badge: "border-rose-200 bg-rose-50 text-rose-700" },
@@ -58,6 +65,10 @@ export const CARGO_CONFIG: Record<Cargo, { badge: string }> = {
   Nutricionista: { badge: "border-emerald-200 bg-emerald-50 text-emerald-700" },
   "Psicólogo(a)": { badge: "border-violet-200 bg-violet-50 text-violet-700" },
   Monitor: { badge: "border-slate-200 bg-slate-50 text-slate-700" },
+}
+
+export function getCargoConfig(cargo: string): { badge: string } {
+  return CARGO_CONFIG[cargo] ?? { badge: "border-primary/20 bg-primary/10 text-primary" }
 }
 
 const MONTHS = [

@@ -4,7 +4,7 @@ import { Mail, Phone, Cake, Pencil, Trash2, Power, PowerOff } from "lucide-react
 import {
   type Funcionario,
   STATUS_CONFIG,
-  CARGO_CONFIG,
+  getCargoConfig,
   getInitials,
   avatarTint,
   formatShortDate,
@@ -21,7 +21,7 @@ interface FuncionarioCardProps {
 
 export function FuncionarioCard({ funcionario, onView, onEdit, onToggleStatus, onDelete }: FuncionarioCardProps) {
   const status = STATUS_CONFIG[funcionario.status]
-  const cargo = CARGO_CONFIG[funcionario.cargo]
+  const cargo = getCargoConfig(funcionario.cargo)
   const isAtivo = funcionario.status === "ativo"
   const idade = calcAge(funcionario.dataNascimento)
 

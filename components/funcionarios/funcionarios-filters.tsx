@@ -1,7 +1,8 @@
 "use client"
 
 import { Search, Briefcase, SlidersHorizontal, Cake } from "lucide-react"
-import { CARGOS, MESES, type Cargo, type FuncionarioStatus } from "@/lib/funcionarios"
+import { MESES, type Cargo, type FuncionarioStatus } from "@/lib/funcionarios"
+import { useFuncionarios } from "@/components/funcionarios/funcionarios-provider"
 
 export interface FuncionariosFilterState {
   busca: string
@@ -19,6 +20,8 @@ const selectClass =
   "h-9 rounded-md border border-input bg-card pl-8 pr-7 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
 
 export function FuncionariosFilters({ value, onChange }: FuncionariosFiltersProps) {
+  const { cargos } = useFuncionarios()
+
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 md:flex-row md:items-center">
       <div className="relative flex-1">
@@ -48,9 +51,9 @@ export function FuncionariosFilters({ value, onChange }: FuncionariosFiltersProp
             className={selectClass}
           >
             <option value="todos">Cargo: Todos</option>
-            {CARGOS.map((c) => (
-              <option key={c} value={c}>
-                {c}
+            {cargos.map((cargo) => (
+              <option key={cargo.id} value={cargo.nome}>
+                {cargo.nome}
               </option>
             ))}
           </select>

@@ -23,7 +23,7 @@ import { ConfirmDialog } from "@/components/triagens/confirm-dialog"
 import { useFuncionarios } from "@/components/funcionarios/funcionarios-provider"
 import {
   STATUS_CONFIG,
-  CARGO_CONFIG,
+  getCargoConfig,
   avatarTint,
   getInitials,
   formatBirthDate,
@@ -64,7 +64,7 @@ export default function FuncionarioDetailPage() {
   }
 
   const status = STATUS_CONFIG[funcionario.status]
-  const cargo = CARGO_CONFIG[funcionario.cargo]
+  const cargo = getCargoConfig(funcionario.cargo)
   const isAtivo = funcionario.status === "ativo"
   const idade = calcAge(funcionario.dataNascimento)
   const endereco = [

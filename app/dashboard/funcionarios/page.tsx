@@ -10,6 +10,7 @@ import { FuncionarioCard } from "@/components/funcionarios/funcionario-card"
 import { GuiaDrawer } from "@/components/ui/guia-drawer"
 import { GUIA_COLABORADORES } from "@/lib/guias"
 import { FuncionariosFilters, type FuncionariosFilterState } from "@/components/funcionarios/funcionarios-filters"
+import { CargosManager } from "@/components/funcionarios/cargos-manager"
 import { useFuncionarios } from "@/components/funcionarios/funcionarios-provider"
 import { birthMonth, type Funcionario } from "@/lib/funcionarios"
 
@@ -108,6 +109,8 @@ export default function FuncionariosPage() {
             </div>
           </div>
         </div>
+
+        <CargosManager />
 
         {/* Filtros */}
         <FuncionariosFilters value={filters} onChange={setFilters} />

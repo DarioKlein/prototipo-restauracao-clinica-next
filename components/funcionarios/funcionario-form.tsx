@@ -3,12 +3,12 @@
 import { useState, type FormEvent } from "react"
 import { Field, TextInput, SelectInput } from "@/components/ui/form-controls"
 import {
-  CARGOS,
   formatCPF,
   formatPhone,
   formatCEP,
   type Funcionario,
 } from "@/lib/funcionarios"
+import { useFuncionarios } from "@/components/funcionarios/funcionarios-provider"
 
 export type FuncionarioFormValues = Omit<Funcionario, "id">
 
@@ -25,6 +25,7 @@ const ESTADOS = [
 ]
 
 export function FuncionarioForm({ initialValues, submitLabel, onSubmit, onCancel }: FuncionarioFormProps) {
+  const { cargos } = useFuncionarios()
   const [values, setValues] = useState<FuncionarioFormValues>({
     nome: initialValues?.nome ?? "",
     cpf: initialValues?.cpf ?? "",
@@ -42,6 +43,7 @@ export function FuncionarioForm({ initialValues, submitLabel, onSubmit, onCancel
     status: initialValues?.status ?? "ativo",
   })
   const [error, setError] = useState<string | null>(null)
+  const cargosDisponiveis = cargos.filter((cargo) => cargo.ativo || cargo.nome === initialValues?.cargo)
 
   function set<K extends keyof FuncionarioFormValues>(key: K, value: FuncionarioFormValues[K]) {
     setValues((prev) => ({ ...prev, [key]: value }))
@@ -111,9 +113,10 @@ export function FuncionarioForm({ initialValues, submitLabel, onSubmit, onCancel
           <Field label="Cargo" htmlFor="cargo" required>
             <SelectInput id="cargo" value={values.cargo} onChange={(e) => set("cargo", e.target.value as FuncionarioFormValues["cargo"])}>
               <option value="">Selecione um cargo</option>
-              {CARGOS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+              {cargosDisponiveis.map((cargo) => (
+                <option key={cargo.id} value={cargo.nome}>
+                  {cargo.nome}
+                  {!cargo.ativo ? " (inativo)" : ""}
                 </option>
               ))}
             </SelectInput>
