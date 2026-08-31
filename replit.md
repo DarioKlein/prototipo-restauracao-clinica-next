@@ -4,7 +4,7 @@ A clinical management system for Comunidade Restauração, built with Next.js 16
 
 ## Modules
 - **Acolhidos** — residents/patients management
-- **Medicamentos** — medication catalog and pricing
+- **Estoque** — medication inventory by intake modality, with stock movement tracking
 - **Funcionários** — staff/employee management
 - **Triagens** — screenings
 - **Declarações** — declarations

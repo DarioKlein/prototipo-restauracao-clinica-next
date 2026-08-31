@@ -216,7 +216,7 @@ export default function ProntuarioPage({ params }: { params: Promise<{ id: strin
         title="Registrar alta"
         description={`Confirmar a alta de ${acolhido.nome}? O acolhido passará para o status "Alta concedida".`}
         confirmLabel="Registrar alta"
-        onconfirm={() => {
+        onConfirm={() => {
           registrarAlta(acolhido.id)
           setConfirmAlta(false)
         }}

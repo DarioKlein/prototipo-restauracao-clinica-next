@@ -21,7 +21,7 @@ const navItems = [
   { label: "Dashboard", icon: LayoutGrid, href: "/dashboard" },
   { label: "Modalidades", icon: Layers, href: "/dashboard/modalidades" },
   { label: "Acolhidos", icon: Users, href: "/dashboard/acolhidos" },
-  { label: "Medicamentos", icon: Pill, href: "/dashboard/medicamentos" },
+  { label: "Estoque", icon: Pill, href: "/dashboard/estoque" },
   { label: "Colaboradores", icon: Briefcase, href: "/dashboard/funcionarios" },
   { label: "Relatórios", icon: BarChart3, href: "/dashboard/relatorios" },
   { label: "Declarações", icon: FileText, href: "/dashboard/declaracoes" },
