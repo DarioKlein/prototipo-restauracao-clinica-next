@@ -126,7 +126,7 @@ export default function FuncionariosPage() {
                 key={f.id}
                 funcionario={f}
                 onView={(func) => router.push(`/dashboard/funcionarios/${func.id}`)}
-                onEdit={(func) => router.push(`/dashboard/funcionarios/${func.id}/editar`)}
+                onEdit={(func) => router.push(`/dashboard/funcionarios/${func.id}?edit=1`)}
                 onToggleStatus={(func) => toggleStatus(func.id)}
                 onDelete={(func) => setToDelete(func)}
               />

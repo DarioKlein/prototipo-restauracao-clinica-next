@@ -50,7 +50,7 @@ export default function ModalidadesPage() {
   )
 
   function handleEditar(m: ModalidadeItem) {
-    router.push(`/dashboard/modalidades/${m.id}/editar`)
+    router.push(`/dashboard/modalidades/${m.id}?edit=1`)
   }
 
   return (
