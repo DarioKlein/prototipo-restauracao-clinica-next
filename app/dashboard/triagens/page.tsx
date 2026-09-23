@@ -174,7 +174,7 @@ export default function TriagensPage() {
                       onView={(tri) => router.push(`/dashboard/triagens/${tri.id}`)}
                       onConcluir={(tri) => concluirTriagem(tri.id)}
                       onReabrir={(tri) => reabrirTriagem(tri.id)}
-                      onEdit={(tri) => router.push(`/dashboard/triagens/${tri.id}?edit=1`)}
+                      onEdit={(tri) => router.push(`/dashboard/triagens/${tri.id}/editar`)}
                       onDelete={(tri) => setToDelete(tri)}
                     />
                   ))}
