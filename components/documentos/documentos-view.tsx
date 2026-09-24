@@ -30,7 +30,7 @@ import {
   STATUS_TINT,
   statusTratamento,
   getInitials,
-  avatarTint,
+  getModalidadeFaixa,
   type Acolhido,
   type CategoriaRelatorio,
   type Modalidade,
@@ -426,17 +426,16 @@ function DocumentosAcolhidoPicker({
                   type="button"
                   onClick={() => onSelect(a)}
                   aria-pressed={isSelected}
-                  className={`group relative flex flex-col gap-3 rounded-xl border p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
+                  className={`group relative flex flex-col gap-3 rounded-xl border border-l-4 ${getModalidadeFaixa(a.modalidade).border} p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
                     isSelected
                       ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                       : "border-border bg-white hover:border-primary/40"
                   }`}
+                  title={`Modalidade: ${a.modalidade}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${avatarTint(
-                        a.nome,
-                      )}`}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-xs"
                     >
                       {getInitials(a.nome)}
                     </span>

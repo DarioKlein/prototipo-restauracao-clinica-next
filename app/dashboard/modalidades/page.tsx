@@ -49,6 +49,10 @@ export default function ModalidadesPage() {
     [modalidades],
   )
 
+  function handleVisualizar(m: ModalidadeItem) {
+    router.push(`/dashboard/modalidades/${m.id}`)
+  }
+
   function handleEditar(m: ModalidadeItem) {
     router.push(`/dashboard/modalidades/${m.id}?edit=1`)
   }
@@ -129,6 +133,7 @@ export default function ModalidadesPage() {
                 key={m.id}
                 modalidade={m}
                 ocupadas={getOcupadas(m)}
+                onView={handleVisualizar}
                 onEdit={handleEditar}
                 onToggleAtiva={(mod) => toggleAtiva(mod.id)}
                 onDelete={setToDelete}

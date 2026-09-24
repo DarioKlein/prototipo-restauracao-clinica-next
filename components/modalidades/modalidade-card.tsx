@@ -1,17 +1,19 @@
 "use client"
 
-import { Layers, Users, DoorOpen, Pencil, Trash2, Power, PowerOff } from "lucide-react"
+import Link from "next/link"
+import { Eye, Layers, Users, DoorOpen, Pencil, Trash2, Power, PowerOff } from "lucide-react"
 import { MODALIDADE_CORES, calcularOcupacao, type ModalidadeItem } from "@/lib/modalidades"
 
 interface ModalidadeCardProps {
   modalidade: ModalidadeItem
   ocupadas: number
+  onView?: (m: ModalidadeItem) => void
   onEdit: (m: ModalidadeItem) => void
   onToggleAtiva: (m: ModalidadeItem) => void
   onDelete: (m: ModalidadeItem) => void
 }
 
-export function ModalidadeCard({ modalidade, ocupadas, onEdit, onToggleAtiva, onDelete }: ModalidadeCardProps) {
+export function ModalidadeCard({ modalidade, ocupadas, onView, onEdit, onToggleAtiva, onDelete }: ModalidadeCardProps) {
   const cor = MODALIDADE_CORES[modalidade.cor]
   const { disponiveis, percentual, lotada } = calcularOcupacao(modalidade.vagas, ocupadas)
   const inativa = !modalidade.ativa
@@ -52,11 +54,26 @@ export function ModalidadeCard({ modalidade, ocupadas, onEdit, onToggleAtiva, on
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
+          <Link
+            href={`/dashboard/modalidades/${modalidade.id}`}
+            onClick={(e) => {
+              if (onView) {
+                e.preventDefault()
+                onView(modalidade)
+              }
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label={`Visualizar ${modalidade.nome}`}
+            title="Visualizar modalidade"
+          >
+            <Eye className="h-4 w-4" aria-hidden="true" />
+          </Link>
           <button
             type="button"
             onClick={() => onEdit(modalidade)}
             className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label={`Editar ${modalidade.nome}`}
+            title="Editar modalidade"
           >
             <Pencil className="h-4 w-4" aria-hidden="true" />
           </button>

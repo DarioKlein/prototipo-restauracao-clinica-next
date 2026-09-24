@@ -165,9 +165,7 @@ function HeaderSearch() {
                   >
                     {r.tipo === "acolhido" ? (
                       <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarTint(
-                          r.nome,
-                        )}`}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
                       >
                         {getInitials(r.nome)}
                       </span>

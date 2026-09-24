@@ -24,11 +24,10 @@ import {
   type StatusTratamento,
   statusTratamento,
   getInitials,
-  avatarTint,
   formatShortDate,
   tempoInternado,
-  MODALIDADE_TINT,
   STATUS_TINT,
+  getModalidadeFaixa,
 } from "@/lib/acolhidos"
 
 const INITIAL_FILTERS: AcolhidosFilterState = {
@@ -165,30 +164,46 @@ export default function AcolhidosPage() {
             </div>
 
             <AcolhidosFilters value={filters} onChange={handleFilters} />
+
+            <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Modalidade pela faixa:</span>
+              <span className="inline-flex items-center gap-1.5" title="Faixa azul na lateral do acolhido">
+                <span className="h-2.5 w-2.5 rounded-full bg-sky-500" aria-hidden="true" />
+                Particular
+              </span>
+              <span className="inline-flex items-center gap-1.5" title="Faixa violeta na lateral do acolhido">
+                <span className="h-2.5 w-2.5 rounded-full bg-violet-500" aria-hidden="true" />
+                Prefeitura
+              </span>
+              <span className="inline-flex items-center gap-1.5" title="Faixa verde na lateral do acolhido">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                Social
+              </span>
+            </div>
           </div>
 
           {/* Tabela */}
           {pageItems.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] border-collapse text-left">
+            <div className="overflow-x-auto bg-muted/20 p-4 sm:p-5">
+              <table className="w-full min-w-[760px] border-separate border-spacing-y-2 text-left">
                 <thead>
-                  <tr className="border-b border-border text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    <th className="px-5 py-3 font-semibold">Nome</th>
-                    <th className="px-3 py-3 font-semibold">Data de entrada</th>
-                    <th className="px-3 py-3 font-semibold">Modalidade</th>
-                    <th className="px-3 py-3 font-semibold">Previsão de alta</th>
-                    <th className="px-3 py-3 font-semibold">Tempo internado</th>
-                    <th className="px-3 py-3 font-semibold">Status</th>
-                    <th className="px-5 py-3 text-right font-semibold">Ações</th>
+                  <tr className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <th className="px-5 py-2 font-semibold">Nome</th>
+                    <th className="px-3 py-2 font-semibold">Data de entrada</th>
+                    <th className="px-3 py-2 font-semibold">Previsão de alta</th>
+                    <th className="px-3 py-2 font-semibold">Tempo internado</th>
+                    <th className="px-3 py-2 font-semibold">Status</th>
+                    <th className="px-5 py-2 text-right font-semibold">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pageItems.map((a) => {
                     const status = statusTratamento(a)
                     const statusCfg = STATUS_TINT[status]
+                    const faixa = getModalidadeFaixa(a.modalidade)
                     const actions: RowAction[] = [
                       { key: "ver", label: "Ver prontuário", icon: "ver", onSelect: () => router.push(`/dashboard/acolhidos/${a.id}`) },
-                      { key: "editar", label: "Editar dados", icon: "editar", onSelect: () => router.push(`/dashboard/acolhidos/${a.id}/editar`) },
+                      { key: "editar", label: "Editar dados", icon: "editar", onSelect: () => router.push(`/dashboard/acolhidos/${a.id}?edit=1`) },
                     ]
                     if (a.situacao === "ativo") {
                       actions.push({ key: "alta", label: "Registrar alta", icon: "alta", onSelect: () => setToAlta(a) })
@@ -202,14 +217,15 @@ export default function AcolhidosPage() {
                       <tr
                         key={a.id}
                         onClick={() => router.push(`/dashboard/acolhidos/${a.id}`)}
-                        className="cursor-pointer border-b border-border/70 text-sm transition-colors last:border-0 hover:bg-muted/40"
+                        className="group cursor-pointer text-sm transition-all hover:shadow-xs"
                       >
-                        <td className="px-5 py-3">
+                        <td
+                          className={`rounded-l-xl border-y border-l-4 ${faixa.border} border-border bg-card px-5 py-3.5 transition-colors group-hover:bg-muted/40`}
+                          title={`Modalidade: ${a.modalidade}`}
+                        >
                           <div className="flex items-center gap-3">
                             <span
-                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarTint(
-                                a.nome,
-                              )}`}
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
                             >
                               {getInitials(a.nome)}
                             </span>
@@ -221,17 +237,16 @@ export default function AcolhidosPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-3 py-3 text-muted-foreground">{formatShortDate(a.dataEntrada)}</td>
-                        <td className="px-3 py-3">
-                          <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${MODALIDADE_TINT[a.modalidade]}`}
-                          >
-                            {a.modalidade}
-                          </span>
+                        <td className="border-y border-border bg-card px-3 py-3.5 text-muted-foreground transition-colors group-hover:bg-muted/40">
+                          {formatShortDate(a.dataEntrada)}
                         </td>
-                        <td className="px-3 py-3 text-muted-foreground">{formatShortDate(a.previsaoAlta)}</td>
-                        <td className="px-3 py-3 text-muted-foreground">{tempoInternado(a.dataEntrada)}</td>
-                        <td className="px-3 py-3">
+                        <td className="border-y border-border bg-card px-3 py-3.5 text-muted-foreground transition-colors group-hover:bg-muted/40">
+                          {formatShortDate(a.previsaoAlta)}
+                        </td>
+                        <td className="border-y border-border bg-card px-3 py-3.5 text-muted-foreground transition-colors group-hover:bg-muted/40">
+                          {tempoInternado(a.dataEntrada)}
+                        </td>
+                        <td className="border-y border-border bg-card px-3 py-3.5 transition-colors group-hover:bg-muted/40">
                           <span
                             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${statusCfg.badge}`}
                           >
@@ -239,7 +254,10 @@ export default function AcolhidosPage() {
                             {status}
                           </span>
                         </td>
-                        <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                        <td
+                          className="rounded-r-xl border-y border-r border-border bg-card px-5 py-3.5 text-right transition-colors group-hover:bg-muted/40"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <RowActions actions={actions} />
                         </td>
                       </tr>
@@ -262,7 +280,7 @@ export default function AcolhidosPage() {
 
           {/* Paginação */}
           {filtered.length > 0 && (
-            <div className="flex items-center justify-between gap-3 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3 border-t border-border p-4 sm:p-5">
               <p className="text-xs text-muted-foreground">
                 Exibindo {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filtered.length)} de{" "}
                 {filtered.length}

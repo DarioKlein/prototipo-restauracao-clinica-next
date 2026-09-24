@@ -6,8 +6,8 @@ import {
   type Acolhido,
   statusTratamento,
   getInitials,
-  avatarTint,
   STATUS_TINT,
+  getModalidadeFaixa,
 } from "@/lib/acolhidos"
 
 export function AcolhidoPicker({
@@ -57,22 +57,22 @@ export function AcolhidoPicker({
             const status = statusTratamento(a)
             const statusCfg = STATUS_TINT[status]
             const isSelected = a.id === selectedId
+            const faixa = getModalidadeFaixa(a.modalidade)
             return (
               <button
                 key={a.id}
                 type="button"
                 onClick={() => onSelect(a)}
                 aria-pressed={isSelected}
-                className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
+                className={`flex w-full items-center gap-3 rounded-xl border border-l-4 ${faixa.border} p-3 text-left transition ${
                   isSelected
                     ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                     : "border-border bg-white hover:border-primary/40 hover:bg-muted/40"
                 }`}
+                title={`Modalidade: ${a.modalidade}`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${avatarTint(
-                    a.nome,
-                  )}`}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
                 >
                   {getInitials(a.nome)}
                 </span>

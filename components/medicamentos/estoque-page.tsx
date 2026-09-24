@@ -1,6 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import {
   AlertTriangle,
   ArrowDownToLine,
@@ -9,21 +11,19 @@ import {
   History,
   Layers3,
   PackageOpen,
-  Pencil,
   Pill,
   Plus,
   Search,
-  Trash2,
   XCircle,
 } from "lucide-react"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { ConfirmDialog } from "@/components/triagens/confirm-dialog"
 import { Modal } from "@/components/ui/modal"
-import { MedicamentoForm } from "@/components/medicamentos/medicamento-form"
+import { RowActions, type RowAction } from "@/components/acolhidos/row-actions"
 import { MovimentacaoForm } from "@/components/medicamentos/movimentacao-form"
 import { useMedicamentos } from "@/components/medicamentos/medicamentos-provider"
 import { useModalidades } from "@/components/modalidades/modalidades-provider"
-import { MODALIDADE_CORES, type ModalidadeItem } from "@/lib/modalidades"
+import { MODALIDADE_CORES } from "@/lib/modalidades"
 import { formatBRL } from "@/lib/internos"
 import type { Medicamento, MovimentacaoTipo } from "@/lib/medicamentos"
 
@@ -60,53 +60,44 @@ function formatDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR").format(new Date(`${date}T12:00:00`))
 }
 
-function ModalityBadge({ modalidade }: { modalidade?: ModalidadeItem }) {
-  if (!modalidade) {
-    return <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600">Sem modalidade</span>
-  }
-  const colors = MODALIDADE_CORES[modalidade.cor]
-  return <span className={`inline-flex rounded-full border px-2 py-1 text-[11px] font-medium ${colors.badge}`}>{modalidade.nome}</span>
-}
-
 export function EstoquePage() {
-  const { medicamentos, addMedicamento, updateMedicamento, movimentarEstoque, removeMedicamento } = useMedicamentos()
+  const router = useRouter()
+  const { medicamentos, movimentarEstoque, removeMedicamento } = useMedicamentos()
   const { modalidades } = useModalidades()
   const [busca, setBusca] = useState("")
   const [modalidadeFiltro, setModalidadeFiltro] = useState("todos")
   const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>("todos")
-  const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState<Medicamento | null>(null)
   const [movement, setMovement] = useState<{ medicamento: Medicamento; tipo: MovimentacaoTipo } | null>(null)
   const [historyMedicine, setHistoryMedicine] = useState<Medicamento | null>(null)
   const [toDelete, setToDelete] = useState<Medicamento | null>(null)
 
-  const modalidadeById = useMemo(() => new Map(modalidades.map((modalidade) => [modalidade.id, modalidade])), [modalidades])
+  const modalidadeById = useMemo(() => new Map(modalidades.map((m) => [m.id, m])), [modalidades])
 
   const filtrados = useMemo(() => {
     const termo = busca.trim().toLowerCase()
     return [...medicamentos]
-      .filter((medicamento) => {
+      .filter((med) => {
         const matchesSearch =
           !termo ||
-          medicamento.nome.toLowerCase().includes(termo) ||
-          (modalidadeById.get(medicamento.modalidadeId)?.nome.toLowerCase().includes(termo) ?? false)
-        const matchesModalidade = modalidadeFiltro === "todos" || medicamento.modalidadeId === modalidadeFiltro
-        const matchesStatus = statusFiltro === "todos" || getStatus(medicamento) === statusFiltro
+          med.nome.toLowerCase().includes(termo) ||
+          (modalidadeById.get(med.modalidadeId)?.nome.toLowerCase().includes(termo) ?? false)
+        const matchesModalidade = modalidadeFiltro === "todos" || med.modalidadeId === modalidadeFiltro
+        const matchesStatus = statusFiltro === "todos" || getStatus(med) === statusFiltro
         return matchesSearch && matchesModalidade && matchesStatus
       })
       .sort((a, b) => {
         const statusOrder = { zerado: 0, baixo: 1, normal: 2 }
-        const statusDifference = statusOrder[getStatus(a)] - statusOrder[getStatus(b)]
-        return statusDifference || a.nome.localeCompare(b.nome, "pt-BR")
+        const diff = statusOrder[getStatus(a)] - statusOrder[getStatus(b)]
+        return diff || a.nome.localeCompare(b.nome, "pt-BR")
       })
   }, [busca, medicamentos, modalidadeById, modalidadeFiltro, statusFiltro])
 
   const resumo = useMemo(
     () => ({
       itens: medicamentos.length,
-      unidades: medicamentos.reduce((total, medicamento) => total + medicamento.estoqueAtual, 0),
-      baixos: medicamentos.filter((medicamento) => getStatus(medicamento) === "baixo" || getStatus(medicamento) === "zerado").length,
-      modalidades: new Set(medicamentos.map((medicamento) => medicamento.modalidadeId)).size,
+      unidades: medicamentos.reduce((t, m) => t + m.estoqueAtual, 0),
+      baixos: medicamentos.filter((m) => getStatus(m) === "baixo" || getStatus(m) === "zerado").length,
+      modalidades: new Set(medicamentos.map((m) => m.modalidadeId)).size,
     }),
     [medicamentos],
   )
@@ -114,27 +105,20 @@ export function EstoquePage() {
   const categorias = useMemo(
     () =>
       modalidades
-        .map((modalidade) => ({
-          modalidade,
-          itens: medicamentos.filter((medicamento) => medicamento.modalidadeId === modalidade.id),
-        }))
+        .map((mod) => ({ modalidade: mod, itens: medicamentos.filter((m) => m.modalidadeId === mod.id) }))
         .filter(({ itens }) => itens.length > 0),
     [medicamentos, modalidades],
   )
 
-  function openNew() {
-    setEditing(null)
-    setFormOpen(true)
-  }
-
-  function openEdit(medicamento: Medicamento) {
-    setEditing(medicamento)
-    setFormOpen(true)
-  }
-
-  function closeForm() {
-    setFormOpen(false)
-    setEditing(null)
+  function acoes(med: Medicamento): RowAction[] {
+    return [
+      { key: "ver", label: "Visualizar medicamento", icon: "ver", onSelect: () => router.push(`/dashboard/estoque/${med.id}`) },
+      { key: "editar", label: "Editar medicamento", icon: "editar", onSelect: () => router.push(`/dashboard/estoque/${med.id}?edit=1`) },
+      { key: "entrada", label: "Registrar entrada", icon: "entrada", onSelect: () => setMovement({ medicamento: med, tipo: "entrada" }) },
+      { key: "saida", label: "Registrar saída", icon: "saida", onSelect: () => setMovement({ medicamento: med, tipo: "saida" }) },
+      { key: "historico", label: "Ver histórico", icon: "historico", onSelect: () => setHistoryMedicine(med) },
+      { key: "excluir", label: "Excluir", icon: "excluir", danger: true, onSelect: () => setToDelete(med) },
+    ]
   }
 
   function handleMovement(quantidade: number, motivo: string) {
@@ -157,14 +141,13 @@ export function EstoquePage() {
             <p className="text-sm text-muted-foreground">Acompanhe os medicamentos por modalidade e registre cada movimentação.</p>
           </div>
 
-          <button
-            type="button"
-            onClick={openNew}
+          <Link
+            href="/dashboard/estoque/novo"
             className="inline-flex shrink-0 items-center gap-2 self-start rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             Novo medicamento
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -217,8 +200,8 @@ export function EstoquePage() {
             </div>
             <div className="grid gap-2 sm:grid-cols-3">
               {categorias.map(({ modalidade, itens }) => {
-                const unidades = itens.reduce((total, medicamento) => total + medicamento.estoqueAtual, 0)
-                const baixos = itens.filter((medicamento) => getStatus(medicamento) !== "normal").length
+                const unidades = itens.reduce((t, m) => t + m.estoqueAtual, 0)
+                const baixos = itens.filter((m) => getStatus(m) !== "normal").length
                 const colors = MODALIDADE_CORES[modalidade.cor]
                 return (
                   <button
@@ -248,7 +231,7 @@ export function EstoquePage() {
             <input
               type="search"
               value={busca}
-              onChange={(event) => setBusca(event.target.value)}
+              onChange={(e) => setBusca(e.target.value)}
               placeholder="Buscar por medicamento ou modalidade..."
               aria-label="Buscar no estoque"
               className="h-10 w-full rounded-md border border-input bg-card pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -256,20 +239,18 @@ export function EstoquePage() {
           </div>
           <select
             value={modalidadeFiltro}
-            onChange={(event) => setModalidadeFiltro(event.target.value)}
+            onChange={(e) => setModalidadeFiltro(e.target.value)}
             aria-label="Filtrar por modalidade"
             className="h-10 rounded-md border border-input bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
             <option value="todos">Todas as modalidades</option>
-            {modalidades.map((modalidade) => (
-              <option key={modalidade.id} value={modalidade.id}>
-                {modalidade.nome}
-              </option>
+            {modalidades.map((m) => (
+              <option key={m.id} value={m.id}>{m.nome}</option>
             ))}
           </select>
           <select
             value={statusFiltro}
-            onChange={(event) => setStatusFiltro(event.target.value as StatusFiltro)}
+            onChange={(e) => setStatusFiltro(e.target.value as StatusFiltro)}
             aria-label="Filtrar por situação do estoque"
             className="h-10 rounded-md border border-input bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           >
@@ -280,37 +261,53 @@ export function EstoquePage() {
           </select>
         </div>
 
+        {/* Legenda das faixas de cor */}
+        {categorias.length > 0 && (
+          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Modalidade pela faixa:</span>
+            {categorias.map(({ modalidade }) => (
+              <span
+                key={modalidade.id}
+                className="inline-flex items-center gap-1.5"
+                title={`Cor da modalidade ${modalidade.nome}`}
+              >
+                <span className={`h-2.5 w-2.5 rounded-full ${MODALIDADE_CORES[modalidade.cor].dot}`} aria-hidden="true" />
+                {modalidade.nome}
+              </span>
+            ))}
+          </div>
+        )}
+
         {filtrados.length > 0 ? (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
-            <div className="hidden grid-cols-[minmax(0,1.5fr)_10rem_minmax(12rem,1fr)_6rem_8rem] items-center gap-4 border-b border-border bg-muted/30 px-5 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground lg:grid">
+          <div>
+            <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(12rem,1fr)_6rem_6rem] items-center gap-4 px-5 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground lg:grid">
               <span>Medicamento</span>
-              <span>Modalidade</span>
               <span>Disponibilidade</span>
               <span>Preço</span>
               <span className="text-right">Ações</span>
             </div>
-            <div className="divide-y divide-border">
-              {filtrados.map((medicamento) => {
-                const status = getStatus(medicamento)
+            <div className="space-y-2">
+              {filtrados.map((med) => {
+                const status = getStatus(med)
                 const config = statusConfig[status]
                 const StatusIcon = config.icon
-                const modalidade = modalidadeById.get(medicamento.modalidadeId)
-                const percentual = Math.min(100, medicamento.estoqueMinimo > 0 ? Math.round((medicamento.estoqueAtual / medicamento.estoqueMinimo) * 100) : 100)
+                const modalidade = modalidadeById.get(med.modalidadeId)
+                const faixa = modalidade ? MODALIDADE_CORES[modalidade.cor].faixa : "border-l-slate-300"
+                const percentual = Math.min(100, med.estoqueMinimo > 0 ? Math.round((med.estoqueAtual / med.estoqueMinimo) * 100) : 100)
                 return (
-                  <div key={medicamento.id} className="flex flex-col gap-4 px-4 py-4 transition-colors hover:bg-muted/20 lg:grid lg:grid-cols-[minmax(0,1.5fr)_10rem_minmax(12rem,1fr)_6rem_8rem] lg:items-center lg:gap-4 lg:px-5">
+                  <div
+                    key={med.id}
+                    title={`Modalidade: ${modalidade?.nome ?? "Sem modalidade"}`}
+                    className={`group flex flex-col gap-4 rounded-xl border border-border border-l-4 ${faixa} bg-card px-4 py-4 transition-all hover:shadow-xs lg:grid lg:grid-cols-[minmax(0,1.5fr)_minmax(12rem,1fr)_6rem_6rem] lg:items-center lg:gap-4 lg:px-5`}
+                  >
                     <div className="flex min-w-0 items-center gap-3">
                       <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${status === "normal" ? "bg-primary/10 text-primary" : status === "baixo" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"}`}>
                         <Pill className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">{medicamento.nome}</p>
-                        <p className="text-xs text-muted-foreground">por {medicamento.unidade.toLowerCase()}</p>
+                        <p className="truncate text-sm font-semibold text-foreground">{med.nome}</p>
+                        <p className="text-xs text-muted-foreground">por {med.unidade.toLowerCase()}</p>
                       </div>
-                    </div>
-
-                    <div>
-                      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground lg:hidden">Modalidade</span>
-                      <ModalityBadge modalidade={modalidade} />
                     </div>
 
                     <div className="min-w-0">
@@ -326,62 +323,21 @@ export function EstoquePage() {
                           <div className={`h-full rounded-full ${config.bar}`} style={{ width: `${percentual}%` }} />
                         </div>
                         <span className="shrink-0 text-xs font-semibold text-foreground">
-                          {medicamento.estoqueAtual} <span className="font-normal text-muted-foreground">/ mín. {medicamento.estoqueMinimo}</span>
+                          {med.estoqueAtual} <span className="font-normal text-muted-foreground">/ mín. {med.estoqueMinimo}</span>
                         </span>
                       </div>
                     </div>
 
                     <p className="text-sm font-semibold text-foreground">
                       <span className="mr-2 text-xs font-normal text-muted-foreground lg:hidden">Preço:</span>
-                      {formatBRL(medicamento.preco)}
+                      {formatBRL(med.preco)}
                     </p>
 
-                    <div className="flex items-center gap-1 lg:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setMovement({ medicamento, tipo: "entrada" })}
-                        aria-label={`Adicionar ao estoque de ${medicamento.nome}`}
-                        title="Registrar entrada"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-emerald-600 transition-colors hover:bg-emerald-50"
-                      >
-                        <ArrowDownToLine className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMovement({ medicamento, tipo: "saida" })}
-                        aria-label={`Diminuir estoque de ${medicamento.nome}`}
-                        title="Registrar saída"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-amber-600 transition-colors hover:bg-amber-50"
-                      >
-                        <ArrowUpFromLine className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setHistoryMedicine(medicamento)}
-                        aria-label={`Ver histórico de ${medicamento.nome}`}
-                        title="Ver histórico"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      >
-                        <History className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openEdit(medicamento)}
-                        aria-label={`Editar ${medicamento.nome}`}
-                        title="Editar medicamento"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                      >
-                        <Pencil className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setToDelete(medicamento)}
-                        aria-label={`Excluir ${medicamento.nome}`}
-                        title="Excluir medicamento"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      </button>
+                    <div className="flex justify-end">
+                      <RowActions
+                        label={`Ações de ${med.nome}`}
+                        actions={acoes(med)}
+                      />
                     </div>
                   </div>
                 )
@@ -402,43 +358,17 @@ export function EstoquePage() {
               </p>
             </div>
             {!busca && modalidadeFiltro === "todos" && statusFiltro === "todos" && (
-              <button
-                type="button"
-                onClick={openNew}
+              <Link
+                href="/dashboard/estoque/novo"
                 className="mt-1 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Novo medicamento
-              </button>
+              </Link>
             )}
           </div>
         )}
       </div>
-
-      <Modal
-        open={formOpen}
-        onClose={closeForm}
-        title={editing ? "Editar medicamento" : "Novo medicamento"}
-        description={editing ? "Atualize os dados de identificação e o nível de alerta." : "Cadastre o medicamento e informe seu estoque inicial."}
-        size="lg"
-      >
-        <MedicamentoForm
-          key={editing?.id ?? "novo"}
-          initialValues={editing ?? undefined}
-          modalidades={modalidades}
-          editing={editing !== null}
-          submitLabel={editing ? "Salvar alterações" : "Cadastrar medicamento"}
-          onCancel={closeForm}
-          onSubmit={(values) => {
-            if (editing) {
-              updateMedicamento(editing.id, values)
-            } else {
-              addMedicamento(values)
-            }
-            closeForm()
-          }}
-        />
-      </Modal>
 
       <Modal
         open={movement !== null}

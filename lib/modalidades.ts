@@ -24,7 +24,7 @@ export interface ModalidadeItem {
 
 export const MODALIDADE_CORES: Record<
   ModalidadeCor,
-  { label: string; badge: string; icon: string; bar: string; track: string; dot: string }
+  { label: string; badge: string; icon: string; bar: string; track: string; dot: string; faixa: string }
 > = {
   sky: {
     label: "Azul",
@@ -33,6 +33,7 @@ export const MODALIDADE_CORES: Record<
     bar: "bg-sky-500",
     track: "bg-sky-100",
     dot: "bg-sky-500",
+    faixa: "border-l-sky-500",
   },
   violet: {
     label: "Violeta",
@@ -41,6 +42,7 @@ export const MODALIDADE_CORES: Record<
     bar: "bg-violet-500",
     track: "bg-violet-100",
     dot: "bg-violet-500",
+    faixa: "border-l-violet-500",
   },
   emerald: {
     label: "Verde",
@@ -49,6 +51,7 @@ export const MODALIDADE_CORES: Record<
     bar: "bg-emerald-500",
     track: "bg-emerald-100",
     dot: "bg-emerald-500",
+    faixa: "border-l-emerald-500",
   },
   amber: {
     label: "Âmbar",
@@ -57,6 +60,7 @@ export const MODALIDADE_CORES: Record<
     bar: "bg-amber-500",
     track: "bg-amber-100",
     dot: "bg-amber-500",
+    faixa: "border-l-amber-500",
   },
   rose: {
     label: "Rosa",
@@ -65,6 +69,7 @@ export const MODALIDADE_CORES: Record<
     bar: "bg-rose-500",
     track: "bg-rose-100",
     dot: "bg-rose-500",
+    faixa: "border-l-rose-500",
   },
   slate: {
     label: "Cinza",
@@ -73,6 +78,7 @@ export const MODALIDADE_CORES: Record<
     bar: "bg-slate-500",
     track: "bg-slate-200",
     dot: "bg-slate-400",
+    faixa: "border-l-slate-500",
   },
 }
 

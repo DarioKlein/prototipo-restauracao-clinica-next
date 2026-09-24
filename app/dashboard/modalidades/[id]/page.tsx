@@ -3,13 +3,20 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, CalendarDays, Check, DoorOpen, Layers, Pencil, Power, PowerOff, Trash2, Users } from "lucide-react"
+import { ArrowLeft, CalendarDays, Check, DoorOpen, Layers, Palette, Pencil, Power, PowerOff, Trash2, Users } from "lucide-react"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { ConfirmDialog } from "@/components/triagens/confirm-dialog"
 import { ModalidadeForm } from "@/components/modalidades/modalidade-form"
 import { useModalidades } from "@/components/modalidades/modalidades-provider"
 import { useAcolhidos } from "@/components/acolhidos/acolhidos-provider"
 import { calcularOcupacao, MODALIDADE_CORES } from "@/lib/modalidades"
+import {
+  statusTratamento,
+  STATUS_TINT,
+  formatShortDate,
+  getInitials,
+  getModalidadeFaixa,
+} from "@/lib/acolhidos"
 
 export default function ModalidadeDetailPage() {
   const router = useRouter()
@@ -28,6 +35,11 @@ export default function ModalidadeDetailPage() {
 
   const ocupadas = useMemo(
     () => (modalidade ? acolhidos.filter((a) => a.situacao === "ativo" && a.modalidade === modalidade.nome).length : 0),
+    [acolhidos, modalidade],
+  )
+
+  const acolhidosDaModalidade = useMemo(
+    () => (modalidade ? acolhidos.filter((a) => a.modalidade === modalidade.nome) : []),
     [acolhidos, modalidade],
   )
 
@@ -154,8 +166,11 @@ export default function ModalidadeDetailPage() {
                 <DetailItem icon={Layers} label="Descrição">
                   {modalidade.descricao || "Sem descrição cadastrada"}
                 </DetailItem>
-                <DetailItem icon={CalendarDays} label="Cadastro">
+                <DetailItem icon={CalendarDays} label="Data de cadastro">
                   {modalidade.criadoEm}
+                </DetailItem>
+                <DetailItem icon={DoorOpen} label="Capacidade total">
+                  {modalidade.vagas} vagas
                 </DetailItem>
                 <DetailItem icon={Users} label="Acolhidos ativos">
                   {ocupadas}
@@ -163,19 +178,88 @@ export default function ModalidadeDetailPage() {
                 <DetailItem icon={DoorOpen} label="Vagas disponíveis">
                   {disponiveis}
                 </DetailItem>
+                <DetailItem icon={Palette} label="Cor de identificação">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 rounded-full ${cor.dot}`} aria-hidden="true" />
+                    <span>{cor.label}</span>
+                  </div>
+                </DetailItem>
               </dl>
             </div>
 
             <div className="rounded-xl border border-border bg-card p-5 md:p-6">
               <div className="mb-2 flex items-center justify-between text-xs font-medium">
-                <h3 className="text-sm font-semibold text-foreground">Ocupação</h3>
-                <span className={lotada ? "text-destructive" : "text-muted-foreground"}>
-                  {lotada ? "Lotada" : `${percentual}%`}
+                <h3 className="text-sm font-semibold text-foreground">Taxa de ocupação</h3>
+                <span className={lotada ? "text-destructive font-semibold" : "text-muted-foreground"}>
+                  {lotada ? "Lotada (100%)" : `${percentual}%`}
                 </span>
               </div>
               <div className={`h-2 w-full overflow-hidden rounded-full ${cor.track}`}>
-                <div className={`h-full rounded-full ${lotada ? "bg-destructive" : cor.bar}`} style={{ width: `${percentual}%` }} />
+                <div className={`h-full rounded-full transition-all ${lotada ? "bg-destructive" : cor.bar}`} style={{ width: `${percentual}%` }} />
               </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {ocupadas} de {modalidade.vagas} vagas ocupadas ({disponiveis} restantes)
+              </p>
+            </div>
+
+            {/* Acolhidos vinculados */}
+            <div className="rounded-xl border border-border bg-card p-5 md:p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Acolhidos nesta modalidade</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {acolhidosDaModalidade.length} {acolhidosDaModalidade.length === 1 ? "acolhido encontrado" : "acolhidos encontrados"}
+                  </p>
+                </div>
+              </div>
+
+              {acolhidosDaModalidade.length > 0 ? (
+                <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+                  {acolhidosDaModalidade.map((a) => {
+                    const status = statusTratamento(a)
+                    const statusCfg = STATUS_TINT[status]
+                    return (
+                      <div
+                        key={a.id}
+                        className={`flex flex-col gap-3 border-l-4 ${getModalidadeFaixa(a.modalidade).border} p-3.5 transition-colors hover:bg-muted/30 sm:flex-row sm:items-center sm:justify-between`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground shadow-xs"
+                          >
+                            {getInitials(a.nome)}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-foreground">{a.nome}</p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {a.matricula} · CPF {a.cpf} · Entrada: {formatShortDate(a.dataEntrada)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end sm:self-center">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusCfg.badge}`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${statusCfg.dot}`} aria-hidden="true" />
+                            {status}
+                          </span>
+                          <Link
+                            href={`/dashboard/acolhidos/${a.id}`}
+                            className="rounded-md border border-input bg-card px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                          >
+                            Ver prontuário
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-border py-8 text-center text-xs text-muted-foreground">
+                  Nenhum acolhido vinculado a esta modalidade no momento.
+                </div>
+              )}
             </div>
           </>
         )}

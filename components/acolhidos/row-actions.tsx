@@ -1,12 +1,34 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { MoreHorizontal, Eye, Pencil, LogOut, Power, PowerOff, Trash2 } from "lucide-react"
+import {
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  LogOut,
+  Power,
+  PowerOff,
+  Trash2,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  History,
+} from "lucide-react"
+
+export type RowActionIcon =
+  | "ver"
+  | "editar"
+  | "entrada"
+  | "saida"
+  | "historico"
+  | "alta"
+  | "inativar"
+  | "reativar"
+  | "excluir"
 
 export interface RowAction {
   key: string
   label: string
-  icon: "ver" | "editar" | "alta" | "inativar" | "reativar" | "excluir"
+  icon: RowActionIcon
   onSelect: () => void
   danger?: boolean
 }
@@ -14,6 +36,9 @@ export interface RowAction {
 const ICONS = {
   ver: Eye,
   editar: Pencil,
+  entrada: ArrowDownToLine,
+  saida: ArrowUpFromLine,
+  historico: History,
   alta: LogOut,
   inativar: PowerOff,
   reativar: Power,

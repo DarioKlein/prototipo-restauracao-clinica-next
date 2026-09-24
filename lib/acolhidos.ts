@@ -162,6 +162,43 @@ export const MODALIDADE_TINT: Record<Modalidade, string> = {
   Social: "border-emerald-200 bg-emerald-50 text-emerald-700",
 }
 
+/** Padrão visual do avatar dos acolhidos: vermelho da plataforma com texto branco */
+export const ACOLHIDO_AVATAR_TINT = "bg-primary text-primary-foreground font-semibold"
+
+/** Faixas de cor por modalidade para destaque visual nas tabelas e cards */
+export const MODALIDADE_FAIXA: Record<Modalidade, { border: string; bg: string; dot: string; label: string }> = {
+  Particular: {
+    border: "border-l-sky-500",
+    bg: "bg-sky-500",
+    dot: "bg-sky-500",
+    label: "Particular",
+  },
+  Prefeitura: {
+    border: "border-l-violet-500",
+    bg: "bg-violet-500",
+    dot: "bg-violet-500",
+    label: "Prefeitura",
+  },
+  Social: {
+    border: "border-l-emerald-500",
+    bg: "bg-emerald-500",
+    dot: "bg-emerald-500",
+    label: "Social",
+  },
+}
+
+export function getModalidadeFaixa(modalidade: string): { border: string; bg: string; dot: string; label: string } {
+  if (modalidade in MODALIDADE_FAIXA) {
+    return MODALIDADE_FAIXA[modalidade as Modalidade]
+  }
+  return {
+    border: "border-l-sky-500",
+    bg: "bg-sky-500",
+    dot: "bg-sky-500",
+    label: modalidade,
+  }
+}
+
 export const STATUS_TINT: Record<StatusTratamento, { badge: string; dot: string }> = {
   "Em tratamento": { badge: "border-emerald-200 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
   "Próximo da alta": { badge: "border-amber-200 bg-amber-50 text-amber-700", dot: "bg-amber-500" },
